@@ -1,0 +1,34 @@
+# Node.js
+node_modules/
+npm-debug.log*
+
+# Environment files
+.env
+.env.local
+
+# macOS
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# OS/Editor
+.vscode/
+.idea/
+
+# Build files
+dist/
+build/
+
+# React Native/Expo
+.expo/
+.expo-shared/
+*.apk
+*.aab
+
+
+# Ignore environment files
+api/.env
+# api/serviceKey.json
+zooby/.env
