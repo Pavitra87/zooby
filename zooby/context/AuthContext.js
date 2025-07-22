@@ -1,34 +1,34 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { app } from "../firebaseConfig"; 
+import { app } from "../firebaseConfig";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
+  const [firebaseToken, setFirebaseToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const auth = getAuth(app);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        const idToken = await firebaseUser.getIdToken();
-        setUser(firebaseUser);
-        setToken(idToken);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const token = await user.getIdToken();
+        setFirebaseToken(token);
+        setUser(user);
       } else {
         setUser(null);
-        setToken(null);
+        setFirebaseToken(null);
       }
       setLoading(false);
     });
 
-    return unsubscribe;
+    return () => unsubscribe();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, token, loading }}>
+    <AuthContext.Provider value={{ user, token: firebaseToken, loading }}>
       {children}
     </AuthContext.Provider>
   );

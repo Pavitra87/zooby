@@ -109,13 +109,10 @@ export default function Login() {
   }, [fbResponse]);
 
   // === Email/Password Login --------------------------------------------------
-  const handleLoginWithEmail = async (email, password) => {
-    if (!email || !password) {
-      return Alert.alert(
-        "Missing Fields",
-        "Please enter both email and password."
-      );
-    }
+ const handleLoginWithEmail = async (email, password) => {
+  if (!email || !password) {
+    return Alert.alert("Missing Fields", "Please enter both email and password.");
+  }
 
     setLoading(true);
     try {
@@ -125,7 +122,7 @@ export default function Login() {
         password
       );
       const token = await getIdToken(userCredential.user);
-      await axios.post("http://localhost:5000/api/login", { token });
+      await axios.post(`${API_URL}/api/auth/login`, { token });
        console.log(res.data.user);
 
       Alert.alert("Login Successful", "Welcome!");
@@ -220,10 +217,11 @@ export default function Login() {
                 />
 
                 <View style={styles.imageButtonWrapper}>
-                  <TouchableOpacity
-                    onPress={handleLoginWithEmail}
-                    disabled={loading}
-                  >
+                 <TouchableOpacity
+onPress={() => handleLoginWithEmail(email, password)}
+
+  disabled={loading}
+>
                     <Image
                       source={require("../../assets/images/button.png")}
                       style={styles.buttonImage}

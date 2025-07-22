@@ -14,186 +14,151 @@ import {
 
 import axios from "axios";
 import React, { useState, useLayoutEffect } from "react";
-import { useRouter, Link, useNavigation } from "expo-router";
-import { createUserWithEmailAndPassword, getIdToken } from "firebase/auth";
+import { useRouter, Link } from "expo-router";
+import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
 import { auth } from "../../firebaseConfig";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Signup() {
-     const API_URL=process.env.EXPO_PUBLIC_API_URL;
+  const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
   const router = useRouter();
-  const navigation = useNavigation();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [mobile, setMobile] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-    useLayoutEffect(() => {
-      navigation.setOptions({
-        title: "Sign Up",
-        headerTitleAlign: "center",
-        headerTitleStyle: {
-          fontWeight: "bold",
-          fontSize: 24,
-          color: "#006600",
-         
-        },
-      });
-    }, [navigation]);
+  useLayoutEffect(() => {
+    router.setOptions?.({
+      title: "Sign Up",
+      headerTitleAlign: "center",
+      headerTitleStyle: {
+        fontWeight: "bold",
+        fontSize: 24,
+        color: "#006600",
+      },
+    });
+  }, []);
 
-  const handleSignup = async (name, email, password, mobile) => {
-    // if (!name || !email || !mobile || !password) {
-    //   return Alert.alert("Error", "All fields are required.");
-    // }
+ const handleSignup = async () => {
+  if (!email || !password || !name || !mobile) {
+    Alert.alert("All fields are required");
+    return;
+  }
 
-    // if (!/^\S+@\S+\.\S+$/.test(email)) {
-    //   return Alert.alert("Invalid Email", "Please enter a valid email address.");
-    // }
+  setLoading(true);
+  try {
+const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+const firebaseUid = userCredential.user.uid;
 
-    // if (mobile.length !== 10) {
-    //   return Alert.alert("Invalid Mobile", "Mobile number must be 10 digits.");
-    // }
+await axios.post(`${API_URL}/api/auth/register`, {
+  email,
+  password,
+  name,
+  mobile,
+  firebaseUid
+});
 
-    // if (password.length < 6) {
-    //   return Alert.alert("Weak Password", "Password should be at least 6 characters.");
-    // }
+    Alert.alert("Registration successful");
+  } catch (error) {
+    console.error("Signup error:", error);
+    Alert.alert("Signup failed", error.response?.data?.message || "Try again");
+  } finally {
+    setLoading(false);
+  }
+};
 
-    // setLoading(true);
-    try {
-       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-  const token = await getIdToken(userCredential.user);
-
-      await axios.post(`${API_URL}/api/auth/registerwithemail`, {
-        email,
-        password,
-        name,
-        mobile,
-          token,
-        // firebaseUid: user.uid,
-      });
-
-      Alert.alert("Success", "Signup successful!");
-      router.replace("/(screen)/home");
-    } catch (error) {
-      const message =
-        error.response?.data?.message ||
-        error.message ||
-        "Something went wrong";
-      Alert.alert("Signup Error", message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
-    <View style={{flex:1}}>
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{ flex: 1 }}
-    >
-      <ImageBackground
-        source={require("../../assets/images/leaf1.png")}
-        style={styles.background}
-        resizeMode="cover"
+    <View style={{ flex: 1 }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
       >
-        <ScrollView contentContainerStyle={styles.scrollContainer}>
-          <View style={styles.container}>
-           
+        <ImageBackground
+          source={require("../../assets/images/leaf1.png")}
+          style={styles.background}
+          resizeMode="cover"
+        >
+          <ScrollView contentContainerStyle={styles.scrollContainer}>
+            <View style={styles.container}>
+              <View style={styles.formContainer}>
+                <Text style={styles.label}>Name:</Text>
+                <TextInput
+                  style={styles.input}
+                  value={name}
+                  onChangeText={setName}
+                />
 
-            <View style={styles.formContainer}>
-              <Text style={styles.label}>Name:</Text>
-              <TextInput
-                style={styles.input}
-                value={name}
-                onChangeText={setName}
-              />
+                <Text style={styles.label}>Email:</Text>
+                <TextInput
+                  style={styles.input}
+                  keyboardType="email-address"
+                  value={email}
+                  onChangeText={setEmail}
+                  autoCapitalize="none"
+                />
 
-              <Text style={styles.label}>Email:</Text>
-              <TextInput
-                style={styles.input}
-                keyboardType="email-address"
-                value={email}
-                onChangeText={setEmail}
-              />
+                <Text style={styles.label}>Mobile No:</Text>
+                <TextInput
+                  style={styles.input}
+                  keyboardType="numeric"
+                  maxLength={10}
+                  value={mobile}
+                  onChangeText={(text) =>
+                    setMobile(text.replace(/[^0-9]/g, ""))
+                  }
+                />
 
-              <Text style={styles.label}>Mobile No:</Text>
-              <TextInput
-                style={styles.input}
-                keyboardType="numeric"
-                maxLength={10}
-                value={mobile}
-                onChangeText={(text) => setMobile(text.replace(/[^0-9]/g, ""))}
-              />
+                <Text style={styles.label}>Password:</Text>
+                <TextInput
+                  style={styles.input}
+                  secureTextEntry
+                  value={password}
+                  onChangeText={setPassword}
+                />
 
-              <Text style={styles.label}>Password:</Text>
-              <TextInput
-                style={styles.input}
-                secureTextEntry
-                value={password}
-                onChangeText={setPassword}
-              />
+                <View style={styles.imageButtonWrapper}>
+                  <TouchableOpacity onPress={handleSignup} disabled={loading}>
+                    <Image
+                      source={require("../../assets/images/button.png")}
+                      style={styles.buttonImage}
+                    />
+                    <Text style={styles.textOnImage}>
+                      {loading ? "Signing Up..." : "Sign Up"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
 
-              <View style={styles.imageButtonWrapper}>
-                <TouchableOpacity onPress={handleSignup} disabled={loading}>
-                  <Image
-                    source={require("../../assets/images/button.png")}
-                    style={styles.buttonImage}
-                  />
-                  <Text style={styles.textOnImage}>
-                    {loading ? "Signing Up..." : "Sign Up"}
-                  </Text>
-                </TouchableOpacity>
+                <Link href="/(auth)/login" asChild>
+                  <TouchableOpacity>
+                    <Text style={styles.buttonText}>
+                      Already have an account?{" "}
+                      <Text style={{ color: "blue" }}>Login</Text>
+                    </Text>
+                  </TouchableOpacity>
+                </Link>
               </View>
-
-              <Link href="/(auth)/login" asChild>
-                <TouchableOpacity>
-                  <Text style={styles.buttonText}>
-                    Already have an account?{" "}
-                    <Text style={{ color: "blue" }}>Login</Text>
-                  </Text>
-                </TouchableOpacity>
-              </Link>
             </View>
-          </View>
-        </ScrollView>
-      </ImageBackground>
-    </KeyboardAvoidingView>
-   
-          <SafeAreaView edges={["bottom"]} style={{ backgroundColor: "black" }} />
+          </ScrollView>
+        </ImageBackground>
+      </KeyboardAvoidingView>
+
+      <SafeAreaView edges={["bottom"]} style={{ backgroundColor: "black" }} />
     </View>
   );
 }
+
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: "center",
-  },
-  container: {
-    padding: 20,
-    flex: 1,
-    justifyContent: "center",
-  },
-  logoContainer: {
-    alignItems: "center",
-    marginBottom: 30,
-  },
-  logoText: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#2c3e50",
-  },
+  background: { flex: 1, justifyContent: "center" },
+  scrollContainer: { flexGrow: 1, justifyContent: "center" },
+  container: { padding: 20, flex: 1, justifyContent: "center" },
   formContainer: {
-    backgroundColor:"#99ff99",
-  marginTop:150,
+    backgroundColor: "#99ff99",
+    marginTop: 150,
     padding: 20,
     borderRadius: 10,
-    // shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 8,
