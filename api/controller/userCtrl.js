@@ -6,7 +6,7 @@ const User = require('../model/userModel');
 
 // POST /api/auth/registerwithemail
 router.post('/register', async (req, res) => {
-  const { email, password, name, mobile,firebaseUid } = req.body;
+  const { email, password, name, mobile } = req.body;
 
   // Validation
   if (!email || !password || !name || !mobile) {
@@ -21,12 +21,12 @@ router.post('/register', async (req, res) => {
     }
 
     // Create user in Firebase
-    // const firebaseUser = await admin.auth().createUser({
-    //   email,
-    //   password
-    // });
+    const firebaseUser = await admin.auth().createUser({
+      email,
+      password
+    });
 
-    // const firebaseUid = firebaseUser.uid;
+    const firebaseUid = firebaseUser.uid;
 
     // Optionally hash the password before saving (for non-Firebase login)
     const hashedPassword = await bcrypt.hash(password, 10);

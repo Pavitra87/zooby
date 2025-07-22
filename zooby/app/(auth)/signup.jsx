@@ -41,34 +41,40 @@ export default function Signup() {
     });
   }, []);
 
- const handleSignup = async () => {
-  if (!email || !password || !name || !mobile) {
-    Alert.alert("All fields are required");
-    return;
-  }
+  const handleSignup = async () => {
+    if (!email || !password || !name || !mobile) {
+      Alert.alert("All fields are required");
+      return;
+    }
 
-  setLoading(true);
-  try {
-const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-const firebaseUid = userCredential.user.uid;
+    setLoading(true);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const firebaseUid = userCredential.user.uid;
 
-await axios.post(`${API_URL}/api/auth/register`, {
-  email,
-  password,
-  name,
-  mobile,
-  firebaseUid
-});
+      await axios.post(`${API_URL}/api/auth/register`, {
+        email,
+        password,
+        name,
+        mobile,
+        firebaseUid,
+      });
 
-    Alert.alert("Registration successful");
-  } catch (error) {
-    console.error("Signup error:", error);
-    Alert.alert("Signup failed", error.response?.data?.message || "Try again");
-  } finally {
-    setLoading(false);
-  }
-};
-
+      Alert.alert("Registration successful");
+    } catch (error) {
+      console.error("Signup error:", error);
+      Alert.alert(
+        "Signup failed",
+        error.response?.data?.message || "Try again"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={{ flex: 1 }}>
