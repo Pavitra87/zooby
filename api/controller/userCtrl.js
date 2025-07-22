@@ -6,37 +6,22 @@ const User = require('../model/userModel');
 
 // POST /api/auth/registerwithemail
 router.post('/register', async (req, res) => {
-  const { email, password, name, mobile } = req.body;
+  const { firebaseUid, email, name, mobile } = req.body;
 
-  // Validation
-  if (!email || !password || !name || !mobile) {
+  if (!firebaseUid || !email || !name || !mobile) {
     return res.status(400).json({ message: "All fields are required." });
   }
 
   try {
-    // Check if user already exists in MongoDB
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(409).json({ message: "User already registered." });
     }
 
-    // Create user in Firebase
-    const firebaseUser = await admin.auth().createUser({
-      email,
-      password
-    });
-
-    const firebaseUid = firebaseUser.uid;
-
-    // Optionally hash the password before saving (for non-Firebase login)
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Save user in MongoDB
     const newUser = await User.create({
       name,
       email,
       mobile,
-      password: hashedPassword,
       firebaseUid
     });
 
@@ -46,6 +31,7 @@ router.post('/register', async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 });
+
 
 
 //login
