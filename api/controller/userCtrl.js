@@ -1,15 +1,15 @@
 const express = require('express');
 const router = express.Router();
+const bcrypt = require('bcryptjs');
 const admin = require('../config/firebaseAdmin');
 const User = require('../model/userModel');
 const { verifyToken } = require('../middleware/verifyToken');
 
-// POST /api/auth/register
-router.post('/register', verifyToken, async (req, res) => {
-  const { name, mobile } = req.body;
-  const { uid, email } = req.firebaseUser; // Extracted from token
+// POST /api/auth/registerwithemail
+router.post('/register', async (req, res) => {
+  const { firebaseUid, email, name, mobile } = req.body;
 
-  if (!email || !name || !mobile) {
+  if (!firebaseUid || !email || !name || !mobile) {
     return res.status(400).json({ message: "All fields are required." });
   }
 
@@ -23,7 +23,7 @@ router.post('/register', verifyToken, async (req, res) => {
       name,
       email,
       mobile,
-      firebaseUid: uid
+      firebaseUid
     });
 
     return res.status(201).json({ success: true, user: newUser });
@@ -32,6 +32,7 @@ router.post('/register', verifyToken, async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 });
+
 
 
 //login
