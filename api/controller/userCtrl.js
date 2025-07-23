@@ -6,10 +6,11 @@ const User = require('../model/userModel');
 const { verifyToken } = require('../middleware/verifyToken');
 
 // POST /api/auth/registerwithemail
-router.post('/register', async (req, res) => {
-  const { firebaseUid, email, name, mobile } = req.body;
+router.post('/register', verifyToken, async (req, res) => {
+  const { name, mobile } = req.body;
+  const { uid, email } = req.firebaseUser;
 
-  if (!firebaseUid || !email || !name || !mobile) {
+  if (!email || !name || !mobile) {
     return res.status(400).json({ message: "All fields are required." });
   }
 
@@ -23,7 +24,7 @@ router.post('/register', async (req, res) => {
       name,
       email,
       mobile,
-      firebaseUid
+      firebaseUid: uid,
     });
 
     return res.status(201).json({ success: true, user: newUser });
@@ -36,25 +37,21 @@ router.post('/register', async (req, res) => {
 
 
 //login
-router.post("/login", verifyToken, async (req, res) => {
+router.post('/login', verifyToken, async (req, res) => {
   const { uid, email } = req.firebaseUser;
-
-  console.log("Received UID:", uid);
-  console.log("Received Email:", email);
 
   try {
     let user = await User.findOne({ firebaseUid: uid });
-    console.log("User from DB:", user);
 
     if (!user) {
       user = await User.create({ firebaseUid: uid, email });
       console.log("New user created:", user);
     }
 
-    res.json({ message: "Login successful", user });
+    return res.json({ message: "Login successful", user });
   } catch (err) {
-    console.error("Login failed:", err); 
-    res.status(500).json({ message: "Server error", error: err.message });
+    console.error("Login failed:", err);
+    return res.status(500).json({ message: "Server error", error: err.message });
   }
 });
 
