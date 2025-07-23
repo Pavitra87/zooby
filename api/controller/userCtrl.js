@@ -53,7 +53,7 @@ router.post("/login", verifyToken, async (req, res) => {
 
     res.json({ message: "Login successful", user });
   } catch (err) {
-    console.error("Login failed:", err); // log entire error
+    console.error("Login failed:", err); 
     res.status(500).json({ message: "Server error", error: err.message });
   }
 });
