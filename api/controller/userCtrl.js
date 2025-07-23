@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const admin = require('../config/firebaseAdmin');
 const User = require('../model/userModel');
+const { verifyToken } = require('../middleware/verifyToken');
 
 // POST /api/auth/registerwithemail
 router.post('/register', async (req, res) => {
@@ -35,26 +36,20 @@ router.post('/register', async (req, res) => {
 
 
 //login
-router.post('/login', async (req, res) => {
-  const { token, firebaseUid } = req.body;
+router.post("/login", verifyToken, async (req, res) => {
+  const { uid, email } = req.firebaseUser;
 
-  if (!token || !firebaseUid) {
-    return res.status(400).json({ message: 'Token and Firebase UID are required' });
-  }
   try {
-    const decodedToken = await admin.auth().verifyIdToken(token);
-    if (decodedToken.uid !== firebaseUid) {
-      return res.status(403).json({ message: 'Token UID mismatch' });
-    }
+    let user = await User.findOne({ firebaseUid: uid });
 
-    const user = await User.findOne({ firebaseUid });
     if (!user) {
-      return res.status(404).json({ message: 'User not found in database' });
+      user = await User.create({ firebaseUid: uid, email });
     }
 
-    return res.status(200).json({ message: 'Authenticated', user });
-  } catch (error) {
-    return res.status(401).json({ message: 'Invalid or expired token', error: error.message });
+    res.json({ message: "Login successful", user });
+  } catch (err) {
+    console.error("Login failed:", err.message);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
