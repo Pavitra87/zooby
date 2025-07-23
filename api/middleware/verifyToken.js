@@ -1,19 +1,30 @@
-const admin = require('../config/firebaseAdmin');
+// routes/auth.js
+const express = require("express");
+const router = express.Router();
+const { verifyToken } = require("../middleware/verifyToken");
+const User = require("../models/User"); // Make sure path is correct
 
-const verifyToken = async (req, res, next) => {
-  const token = req.body.token || req.headers.authorization?.split("Bearer ")[1];
-
-  if (!token) {
-    return res.status(401).json({ message: "No token provided" });
-  }
-
+router.post("/login", verifyToken, async (req, res) => {
   try {
-    const decodedToken = await admin.auth().verifyIdToken(token);
-    req.firebaseUser = decodedToken; // Attach to req object
-    next();
+    const { uid, email } = req.firebaseUser;
+
+    console.log("✅ UID:", uid);
+    console.log("✅ Email:", email);
+
+    let user = await User.findOne({ firebaseUid: uid });
+
+    if (!user) {
+      user = await User.create({ firebaseUid: uid, email });
+      console.log("🆕 New user created:", user);
+    } else {
+      console.log("🙋 Existing user found:", user);
+    }
+
+    res.json({ message: "Login successful", user });
   } catch (err) {
-    console.error("Token verification failed:", err.message);
-    return res.status(401).json({ message: "Invalid or expired token" });
+    console.error("❌ Login failed:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
   }
-};
-module.exports={verifyToken}
+});
+
+module.exports = router;
